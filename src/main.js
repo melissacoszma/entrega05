@@ -12,60 +12,110 @@ const botonUnaMas = document.getElementById("unaMas");
 
 const muestraPuntuacion = () => {
     const puntuacion = document.getElementById("puntuacion");
-    puntuacion.textContent = puntos;   
+    if (puntuacion) {
+        puntuacion.textContent = puntos;
+    }; 
 };
 
 document.addEventListener("DOMContentLoaded", muestraPuntuacion);
 
-const randomCarta = () => {
-     let carta = Math.floor(Math.random() * 10) + 1; // +1 (nuestro mínimo) para excluir el 0 en el resultado
-     if(carta > 7){
-        carta += 2;
+const generaNumeroAleatorio = () => {
+     return Math.floor(Math.random() * 10) + 1; // +1 (nuestro mínimo) para excluir el 0 en el resultado
+};
+
+const randomCarta = (numAleatorio)=> {
+    if(numAleatorio > 7){
+        return numAleatorio += 2;
      }
-     return carta;
+     return numAleatorio;
 };
 
-const pidoCarta = () =>{
-    let carta = randomCarta();
-    let valorCarta;
-
+const obtenerPuntosCarta = (carta) => {
     if (carta >= 7) {
-        valorCarta = 0.5; 
-    } else {
-        valorCarta = carta; 
+        return 0.5;
     }
-
-    if(puntos <= 7){
-        puntos += valorCarta;
-    }else {
-        puntos += 0.5;
-    };
-    
-    muestraPuntuacion();
-    mostrarCarta(carta);
-    console.log("Carta generada:", carta, "Valor de la carta:", valorCarta);   
-    winOrLost();
+    return carta;
 };
+
+
+const sumarPuntos = (puntoCarta) => {
+    return puntos + puntoCarta;
+};
+
+const actualizarPuntos = (nuevosPuntos) => {
+    puntos = nuevosPuntos;
+};
+
+const pidoCarta = () => {
+    const numAleatorio = generaNumeroAleatorio();
+    const carta = randomCarta(numAleatorio);
+    const punto = obtenerPuntosCarta(carta); // obtengo el valor de la carta
+    const puntosSumados = sumarPuntos(punto); // suma los puntos
+    actualizarPuntos(puntosSumados); // actualizo la variable global
+    muestraPuntuacion(); // muestro la puntuación actualizada
+    const urlCarta = obtenerUrlCarta(carta); // obtengo la URL de la carta
+    mostrarCarta(urlCarta); // muestro la carta en la interfaz
+    
+};
+
+
+const bloquearBotonPedir = (estaHabilitado) => {
+    const botonPedir = document.getElementById("pidoCarta");
+
+    if (botonPedir) {
+        botonPedir.disabled = estaHabilitado;
+    };
+};
+
+const bloquearBotonMePlanto = (estaHabilitado) => {
+    const botonMePlanto = document.getElementById("mePlanto");
+
+    if (botonMePlanto) {
+        botonMePlanto.disabled = estaHabilitado;
+    };
+};
+
+const esconderNuevoJuego = (estaHabilitado) => {
+    const botonNuevo = document.getElementById("nuevo");
+
+    if (botonNuevo) {
+        botonNuevo.hidden = estaHabilitado;
+    };
+};
+
+const esconderUnaMas = (estaHabilitado) => {
+    const botonUnaMas = document.getElementById("unaMas");
+
+    if (botonUnaMas) {
+        botonUnaMas.hidden = estaHabilitado;
+    };
+};
+
 
 document.addEventListener("DOMContentLoaded", () => {
-    botonNuevoJuego.hidden = true;
-    botonUnaMas.hidden = true;
-    botonMePlanto.disabled = false;
-    
+    esconderNuevoJuego(true);
+    esconderUnaMas(true); 
+    bloquearBotonMePlanto(false);
+        
     const desactivaPideCarta = (boton) =>{
         boton.disabled = true;
     };
 
     if (botonPedir) {
-        botonPedir.addEventListener("click", pidoCarta);
-    };
+        botonPedir.addEventListener("click", () => {
+            pidoCarta();
+            winOrLost(); // verifico si el jugador ha ganado o perdido 
+        });
+    }
+    
 
     if (botonMePlanto) {
         botonMePlanto.addEventListener("click", () => {
             desactivaPideCarta(botonPedir); 
             gameStatusOnPlantar(); 
-            botonNuevoJuego.hidden = false; 
-            botonUnaMas.hidden = false;
+            bloquearBotonMePlanto(true);
+            esconderNuevoJuego(false); 
+            esconderUnaMas(false);
         });
     };
 
@@ -73,12 +123,13 @@ document.addEventListener("DOMContentLoaded", () => {
         botonNuevoJuego.addEventListener("click", () => {
             puntos = 0;
             mensaje.textContent = "";
-            mostrarCarta(0);
+            const urlCarta = obtenerUrlCarta(0);
+            mostrarCarta(urlCarta);
             muestraPuntuacion();
-            botonNuevoJuego.hidden = true;
-            botonPedir.disabled = false; 
-            botonUnaMas.hidden = true; 
-            botonMePlanto.disabled = false;
+            esconderNuevoJuego(true);
+            bloquearBotonPedir(false); 
+            esconderUnaMas(true); 
+            bloquearBotonMePlanto(false); 
         });
     };
 
@@ -86,109 +137,112 @@ document.addEventListener("DOMContentLoaded", () => {
         botonUnaMas.addEventListener("click", () => {
             muestraPuntuacion();
             pidoCarta();
-            botonUnaMas.disabled = true;
+            esconderUnaMas(true);
         });
     };
     
 });
 
-      
-
-
-const mostrarCarta = (carta) => {
-    const imgCarta = document.getElementById("imgCarta");
-    let srcCarta;
-
-    
-    switch (carta) {
-        case 0:
-            srcCarta = "./img/back.jpg";
-            break;
-        case 1:
-            srcCarta = "./img/1_as-copas.jpg";
-            break;
-        case 2:
-            srcCarta = "./img/2_dos-copas.jpg";
-            break;
-        case 3:
-            srcCarta = "./img/3_tres-copas.jpg";
-            break;
-        case 4:
-            srcCarta = "./img/4_cuatro-copas.jpg";
-            break;
-        case 5:
-            srcCarta = "./img/5_cinco-copas.jpg";
-            break;
-        case 6:
-            srcCarta = "./img/6_seis-copas.jpg";
-            break;
-        case 7:
-            srcCarta = "./img/7_siete-copas.jpg";
-            break;
-        case 10:
-            srcCarta = "./img/10_sota-copas.jpg";   
-            break;
-        case 11:
-            srcCarta = "./img/11_caballo-copas.jpg"; 
-            break;
-        case 12:
-            srcCarta = "./img/12_rey-copas.jpg";
-            break;
-        default:
-            srcCarta = "./img/back.jpg"; // Carta boca abajo por defecto, el html inicia en esta también
-    }
-
-    
-    imgCarta.src = srcCarta;
-};
-
 const winOrLost = () => {                         //lo ejecutaremos cada vez q se pida carta para comprobar si s eha ganado o perdido
     if (puntos > 7.5) {
         mensaje.textContent = "Has perdido :(";
         console.log("Has perdido");
-        botonPedir.disabled = true;
-        botonMePlanto.disabled = true;
-        botonNuevoJuego.hidden = false;
-        botonUnaMas.hidden = true;
-    }
+        bloquearBotonPedir(true);
+        bloquearBotonMePlanto(true);
+        esconderNuevoJuego(false);
+        esconderUnaMas(true);
+    };
 
     if (puntos === 7.5) {
         mensaje.textContent = "¡Enhorabuena, has ganado :D!";
         console.log("Has ganado");
-        botonPedir.disabled = true;
-        botonMePlanto.disabled = true;
-        botonNuevoJuego.hidden = false;
-        botonUnaMas.hidden = true;
-    }
-}
+        bloquearBotonPedir(true);
+        bloquearBotonMePlanto(true);
+        esconderNuevoJuego(false);
+        esconderUnaMas(true);
+    };
+};
+
+const muestraMensaje = (mensaje) => {
+    const elementoMensaje = document.getElementById("mensaje");
+
+    if (elementoMensaje) {
+        elementoMensaje.textContent = mensaje;
+    };
+};
+
+      
+const mostrarCarta = (urlCarta) => {
+    const imgCarta = document.getElementById("imgCarta");
+
+    if (imgCarta) {
+        imgCarta.src = urlCarta;
+    };
+};
+
+const obtenerUrlCarta = (carta) => {
+    let urlCarta;
+
+    switch (carta) {
+        case 0:
+            urlCarta = "./img/back.jpg";
+            break;
+        case 1:
+            urlCarta = "./img/1_as-copas.jpg";
+            break;
+        case 2:
+            urlCarta = "./img/2_dos-copas.jpg";
+            break;
+        case 3:
+            urlCarta = "./img/3_tres-copas.jpg";
+            break;
+        case 4:
+            urlCarta = "./img/4_cuatro-copas.jpg";
+            break;
+        case 5:
+            urlCarta = "./img/5_cinco-copas.jpg";
+            break;
+        case 6:
+            urlCarta = "./img/6_seis-copas.jpg";
+            break;
+        case 7:
+            urlCarta = "./img/7_siete-copas.jpg";
+            break;
+        case 10:
+            urlCarta = "./img/10_sota-copas.jpg";   
+            break;
+        case 11:
+            urlCarta = "./img/11_caballo-copas.jpg"; 
+            break;
+        case 12:
+            urlCarta = "./img/12_rey-copas.jpg";
+            break;
+        default:
+            urlCarta = "./img/back.jpg"; // carta boca abajo por defecto
+            break;
+    };
+
+    return urlCarta; 
+};
+
+
+
 
 const gameStatusOnPlantar = () => {
-    const mensaje = document.getElementById("mensaje");
 
-    switch (true) {                                        //Para pasar la constante a un switch he tenido q usar una booleana, evalua si cada caso es verdadero y ejecuta solamente el q lo es
-        /*case puntos > 7.5:
-            mensaje.textContent = "Has perdido :(";         // quito los estados que quiero que se ejecuten automaticamente para pasarlos a una funcion exclusiva
-            console.log("Has perdido");
-            break;*/
+        if (puntos <= 4) {
+            muestraMensaje("Has sido muy conservador u.u");
+        };
 
-        case puntos <= 4:
-            mensaje.textContent = "Has sido muy conservador u.u";
-            break;
+        if (puntos >= 5 && puntos < 6) {
+             muestraMensaje("Te ha entrado el canguelo :S");
+        };
 
-        case puntos >= 5 && puntos < 6:
-            mensaje.textContent = "Te ha entrado el canguelo :S";
-            break;
-
-        case puntos >= 6 && puntos <= 7:
-            mensaje.textContent = "Casi, casi o.o";
-            break;
-
-        /*case puntos === 7.5:
-            mensaje.textContent = "¡Enhorabuena, has ganado :D!";
-            break;*/
-
-        default:
-            mensaje.textContent = "";
-            break;
-    }
+        if (puntos >= 6 && puntos <= 7) {
+             muestraMensaje("Casi, casi o.o");
+            
+        }else {
+            muestraMensaje("");
+        };
+    
 };
